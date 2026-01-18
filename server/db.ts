@@ -4,7 +4,12 @@ import { fileURLToPath } from "url";
 import mongoose from "mongoose";
 import * as schema from "@shared/schema";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+let __dirname: string;
+try {
+  __dirname = path.dirname(fileURLToPath(import.meta.url));
+} catch {
+  __dirname = __dirname || process.cwd();
+}
 dotenv.config({ path: path.resolve(__dirname, "../.env.local") });
 
 if (!process.env.DATABASE_URL) {

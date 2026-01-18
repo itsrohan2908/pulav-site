@@ -1,6 +1,6 @@
 import { build as esbuild } from "esbuild";
 import { build as viteBuild } from "vite";
-import { rm, readFile, cp } from "fs/promises";
+import { rm, readFile } from "fs/promises";
 
 // server deps to bundle to reduce openat(2) syscalls
 // which helps cold start times
@@ -36,11 +36,8 @@ async function buildAll() {
   await rm("dist", { recursive: true, force: true });
 
   console.log("building client...");
+  // Vite will output to dist/public as configured in vite.config.ts
   await viteBuild();
-
-  // Move client output to dist/public for Vercel
-  console.log("moving client build to dist/public...");
-  await cp("dist", "dist/public", { recursive: true, force: true });
 
   console.log("building server...");
   const pkg = JSON.parse(await readFile("package.json", "utf-8"));
