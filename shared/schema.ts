@@ -1,27 +1,34 @@
-import { pgTable, text, serial, timestamp, boolean } from "drizzle-orm/pg-core";
-import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const menuItems = pgTable("menu_items", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  description: text("description").notNull(),
-  price: text("price").notNull(),
-  category: text("category").notNull(),
+export const insertMenuItemSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  description: z.string().min(1, "Description is required"),
+  price: z.string().min(1, "Price is required"),
+  category: z.string().min(1, "Category is required"),
 });
 
-export const contactSubmissions = pgTable("contact_submissions", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  email: text("email").notNull(),
-  message: text("message").notNull(),
-  createdAt: timestamp("created_at").defaultNow(),
+export const insertContactSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  email: z.string().email("Invalid email"),
+  message: z.string().min(1, "Message is required"),
 });
 
-export const insertMenuItemSchema = createInsertSchema(menuItems).omit({ id: true });
-export const insertContactSchema = createInsertSchema(contactSubmissions).omit({ id: true, createdAt: true });
+export type MenuItem = {
+  _id?: string;
+  name: string;
+  description: string;
+  price: string;
+  category: string;
+};
 
-export type MenuItem = typeof menuItems.$inferSelect;
 export type InsertMenuItem = z.infer<typeof insertMenuItemSchema>;
-export type ContactSubmission = typeof contactSubmissions.$inferSelect;
+
+export type ContactSubmission = {
+  _id?: string;
+  name: string;
+  email: string;
+  message: string;
+  createdAt?: Date;
+};
+
 export type InsertContactSubmission = z.infer<typeof insertContactSchema>;
