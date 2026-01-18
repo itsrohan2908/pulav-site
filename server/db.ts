@@ -1,16 +1,10 @@
 import dotenv from "dotenv";
 import path from "path";
-import { fileURLToPath } from "url";
 import mongoose from "mongoose";
 import * as schema from "@shared/schema";
 
-let __dirname: string;
-try {
-  __dirname = path.dirname(fileURLToPath(import.meta.url));
-} catch {
-  __dirname = __dirname || process.cwd();
-}
-dotenv.config({ path: path.resolve(__dirname, "../.env.local") });
+// Load environment variables from .env.local
+dotenv.config({ path: path.resolve(process.cwd(), ".env.local") });
 
 if (!process.env.DATABASE_URL) {
   throw new Error(
