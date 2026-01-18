@@ -1,44 +1,43 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { createServer } from "http";
 import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
 import { registerRoutes } from "../server/routes";
+import { createServer } from "http";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-let server: any;
+let app: express.Application | null = null;
 
-async function startServer() {
-  if (server) return server;
+async function initApp() {
+  if (app) return app;
 
-  const app = express();
-  const httpServer = createServer(app);
+  app = express();
 
+  // Middleware
   app.use(express.json());
   app.use(express.urlencoded({ extended: false }));
 
   // API routes
+  const httpServer = createServer(app);
   await registerRoutes(httpServer, app);
 
-  // Serve static files from dist directory
+  // Serve static files from dist/public
   const publicPath = path.resolve(__dirname, "../dist/public");
+  console.log("Serving static files from:", publicPath);
   app.use(express.static(publicPath));
 
   // SPA fallback - serve index.html for all non-API routes
   app.use("*", (_req, res) => {
-    res.sendFile(path.resolve(publicPath, "index.html"));
+    const indexPath = path.resolve(publicPath, "index.html");
+    res.setHeader("Content-Type", "text/html");
+    res.sendFile(indexPath);
   });
 
-  server = httpServer;
-  return server;
+  return app;
 }
 
 export default async (req: VercelRequest, res: VercelResponse) => {
-  const httpServer = await startServer();
-
-  return new Promise<void>((resolve) => {
-    httpServer.emit("request", req, res);
-    res.on("finish", () => resolve());
-  });
+  const expressApp = await initApp();
+  return expressApp(req, res);
 };
